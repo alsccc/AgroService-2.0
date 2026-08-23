@@ -136,52 +136,69 @@ $resultadoTabela = $conn->query("
 
 <div class="cards">
 
-        <?php foreach ($revisoes as $revisao): ?>
+    <?php $encontrouRevisao = false; ?>
+
+    <?php foreach ($revisoes as $revisao): ?>
 
         <?php
             if ($busca != '' && strpos($revisao['horas'], $busca) === false) {
-            continue;
+                continue;
             }
+
+            $encontrouRevisao = true;
         ?>
 
-            <div class="card">
+        <div class="card">
 
-                <img
-                    src="<?= $revisao['imagem'] ?>"
-                    alt=""
-                    class="zoom-img"
-                    onclick="abrirImagem(this.src)"
->
+            <img
+                src="<?= $revisao['imagem'] ?>"
+                alt=""
+                class="zoom-img"
+                onclick="abrirImagem(this.src)"
+            >
 
-                <div class="card-content">
+            <div class="card-content">
 
-                    <h2><?= $revisao['horas'] ?></h2>
+                <h2><?= $revisao['horas'] ?></h2>
 
-                    <ul>
+                <ul>
 
-                        <?php foreach ($revisao['itens'] as $item): ?>
+                    <?php foreach ($revisao['itens'] as $item): ?>
 
-                            <li>🔧 <?= $item ?></li>
+                        <li>🔧 <?= $item ?></li>
 
-                        <?php endforeach; ?>
+                    <?php endforeach; ?>
 
-                    </ul>
+                </ul>
 
-                    <p>
-                        ⏱ Tempo estimado: <?= tempoEstimadoRevisao($revisao['itens']) ?> minutos
-                    </p>
+                <p>
+                    ⏱ Tempo estimado:
+                    <?= tempoEstimadoRevisao($revisao['itens']) ?> minutos
+                </p>
 
-                    <a href="detalhes.php?id=<?= explode(' ', $revisao['horas'])[0] ?>" class="btn">
-                        Ver Detalhes
-                    </a>
-
-                </div>
+                <a
+                    href="detalhes.php?id=<?= explode(' ', $revisao['horas'])[0] ?>"
+                    class="btn"
+                >
+                    Ver Detalhes
+                </a>
 
             </div>
 
-        <?php endforeach; ?>
+        </div>
 
-    </div>
+    <?php endforeach; ?>
+
+
+    <?php if (!$encontrouRevisao): ?>
+
+        <div class="alert alert-warning">
+            Nenhuma revisão encontrada para a busca realizada.
+        </div>
+
+    <?php endif; ?>
+
+</div>
 
 </section>
 
@@ -213,5 +230,20 @@ $resultadoTabela = $conn->query("
     <img id="imagemAmpliada">
 
 </div>
+
+<script>
+    const revisoesJS = <?= json_encode($revisoes); ?>;
+
+    console.log(revisoesJS);
+
+    const totalItens = revisoesJS.reduce((total, revisao) => {
+    return total + revisao.itens.length;
+    }, 0);
+
+    console.log("Total de itens das revisões:", totalItens);
+
+</script>
+
+<script src="js/revisoes.js"></script>
 
 <?php include 'includes/footer.php'; ?>

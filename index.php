@@ -3,17 +3,7 @@
 
 <?php
 include 'config.php';
-
-if ($conn) {
-    echo "<p>✅ Conexão com banco funcionando!</p>";
-}
-
-$resultado = $conn->query("SELECT * FROM modelosTratores");
-
-while($linha = $resultado->fetch_assoc()) {
-    echo "<p>🚜 Modelo: " . $linha['modelo'] . "</p>";
-}
-?>
+?> 
 
 <?php 
 
@@ -107,7 +97,7 @@ $revisoes = [
 
                 <div class="card-content">
                     
-                    <h2><?= $revisao['horas']; ?></h2>
+                    <h2> <span class="badge bg-success"> <?= $revisao['horas']; ?> </span> </h2>
 
                     <ul>
 
@@ -119,7 +109,7 @@ $revisoes = [
                         
                     </ul>
                     
-                    <a href="detalhes.php?id=<?= explode(' ', $revisao['horas'])[0] ?>" class="btn">
+                    <a href="detalhes.php?id=<?= explode(' ', $revisao['horas'])[0] ?>" class="btn btn-success">
                         Ver detalhes
                     </a>
 
