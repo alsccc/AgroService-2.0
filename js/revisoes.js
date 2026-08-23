@@ -1,4 +1,3 @@
-"use strict";
 async function carregarRevisoes() {
     try {
         const resposta = await fetch("api/revisoes.php"); // requisição da API
@@ -10,3 +9,4 @@ async function carregarRevisoes() {
     }
 }
 carregarRevisoes(); // chamada da função
+export {};

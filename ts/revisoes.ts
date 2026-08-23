@@ -17,3 +17,5 @@ async function carregarRevisoes() {
 }
 
 carregarRevisoes(); // chamada da função
+
+export {};
