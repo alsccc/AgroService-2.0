@@ -54,7 +54,11 @@ $revisoes = [
 </div>
 
 <section class="hero">
-
+    <img
+        src="imgs/banner2.png"
+        alt="Revisões John Deere Linha 5000"
+        class="banner-principal"
+    >
 </section>
 
 <section class="info">

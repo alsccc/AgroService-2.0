@@ -1,6 +1,6 @@
 <?php
 
-$servername = "192.168.56.102"; //Conexão com banco de dados. Ela se conecta ao endereço IP 192.168.56.102,//
+$servername = "localhost"; //Conexão com banco de dados. Ela se conecta ao endereço IP 192.168.56.102,//
 $username = "root";
 $password = "";
 $dbname = "agroserviceBD";
