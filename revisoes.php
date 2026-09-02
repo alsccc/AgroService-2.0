@@ -43,7 +43,7 @@ $revisoes = [
     ]
 ];
 
-function tempoEstimadoRevisao($itens){
+function tempoEstimadoRevisao( array $itens){
     return count($itens) * 30;
 }
 
