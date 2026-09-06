@@ -85,6 +85,15 @@ $revisoes = [
 </section>
 
 <section class="container">
+    
+    <h2>Modelos de Tratores</h2>
+
+    <div id="categorias-nav-links">
+        
+    </div>
+</section>
+
+<section class="container">
 
     <h2 class="titulo-cards">Plano de Revisão</h2>
 

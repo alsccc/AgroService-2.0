@@ -17,5 +17,7 @@ function fecharImagem(){
 }
 </script>
 
+<script src="js/revisoes.js"></script>
+
 </body>
 </html>

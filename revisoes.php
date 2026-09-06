@@ -3,202 +3,263 @@
 
 <?php
 include 'config.php';
-?>
 
-<?php
-
-$revisoes = [
-    [
-        "horas" => "250 horas",
-        "imagem" => "imgs/revisao250h.png",
-        "itens" => [
-            "Troca de óleo do motor",
-            "Troca do filtro de óleo",
-            "Verificação do sistema de arrefecimento",
-            "Lubrificação dos pontos de graxa"
-        ]
-    ],
-
-    [
-        "horas" => "500 horas",
-        "imagem" => "imgs/revisao500h.png",
-        "itens" => [
-            "Troca de óleo do motor",
-            "Troca do filtro de óleo",
-            "Verificação do sistema de arrefecimento",
-            "Lubrificação dos pontos de graxa",
-            "Troca do filtro de combustível"
-        ]
-    ],
-
-    [
-        "horas" => "1000 horas",
-        "imagem" => "imgs/revisao1000h.png",
-        "itens" => [
-            "Regulagem de válvulas",
-            "Troca de correias",
-            "Inspeção do sistema hidráulico",
-            "Inspeção completa do trator"
-        ]
-    ]
-];
-
-function tempoEstimadoRevisao( array $itens){
+function tempoEstimadoRevisao(array $itens) {
     return count($itens) * 30;
 }
 
 $busca = $_GET['busca'] ?? '';
+$modelo = $_GET['modelo'] ?? '';
 
-$resultadoBanco = $conn->query("
-    SELECT
-        id_revisao,
-        horas
-    FROM revisoes
-");
-
-$resultadoTabela = $conn->query("
+$sqlTabela = "
     SELECT
         r.id_revisao,
         r.horas,
+        r.id_modelo,
         COUNT(ri.id_item) AS quantidade_itens
     FROM revisoes r
     LEFT JOIN revisaoItens ri
         ON r.id_revisao = ri.id_revisao
-    GROUP BY r.id_revisao, r.horas
-");
+";
 
+if ($modelo != '') {
+    $sqlTabela .= " WHERE r.id_modelo = " . intval($modelo);
+}
+
+$sqlTabela .= "
+    GROUP BY r.id_revisao, r.horas, r.id_modelo
+    ORDER BY r.horas
+";
+
+$resultadoTabela = $conn->query($sqlTabela);
+
+$sqlCards = "
+    SELECT
+        r.id_revisao,
+        r.horas,
+        r.descricao,
+        r.id_modelo,
+        i.id_item,
+        i.nome_item
+    FROM revisoes r
+    LEFT JOIN revisaoItens ri
+        ON r.id_revisao = ri.id_revisao
+    LEFT JOIN itens i
+        ON ri.id_item = i.id_item
+";
+
+if ($modelo != '') {
+    $sqlCards .= " WHERE r.id_modelo = " . intval($modelo);
+}
+
+$sqlCards .= "
+    ORDER BY r.horas, i.id_item
+";
+
+$resultadoCards = $conn->query($sqlCards);
+
+$revisoes = [];
+
+while ($linha = $resultadoCards->fetch_assoc()) {
+
+    $idRevisao = $linha['id_revisao'];
+
+    if (!isset($revisoes[$idRevisao])) {
+
+        $revisoes[$idRevisao] = [
+            "id_revisao" => $linha['id_revisao'],
+            "horas" => $linha['horas'],
+            "descricao" => $linha['descricao'],
+            "imagem" => "imgs/revisao" . $linha['horas'] . "h.png",
+            "itens" => []
+        ];
+    }
+
+    if ($linha['nome_item'] != null) {
+        $revisoes[$idRevisao]['itens'][] = $linha['nome_item'];
+    }
+}
+
+$revisoes = array_values($revisoes);
 ?>
 
 <section class="container">
 
     <h1>Plano de Revisões</h1>
-    
+
     <form method="GET" class="mb-4">
 
-    <input
-        type="text"
-        name="busca"
-        placeholder="Digite 250, 500 ou 1000"
-        class="form-control"
-        value="<?= $busca ?>"
-    >
-    <br>
+        <?php if ($modelo != ''): ?>
 
-    <button type="submit" class="btn btn-success">
-        Pesquisar
-    </button>
+            <input
+                type="hidden"
+                name="modelo"
+                value="<?= htmlspecialchars($modelo) ?>"
+            >
 
-</form>
+        <?php endif; ?>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Revisão</th>
-            <th>Quantidade de Itens</th>
-        </tr>
-    </thead>
-    <tbody>
+        <input
+            type="text"
+            name="busca"
+            placeholder="Digite 250, 500 ou 1000"
+            class="form-control"
+            value="<?= htmlspecialchars($busca) ?>"
+        >
 
-       <?php while($linha = $resultadoTabela->fetch_assoc()): ?>
+        <br>
 
-            <?php
-                if ($busca != '' && strpos($linha['horas'], $busca) === false) {
-                continue;
-            }
-        ?>
+        <button type="submit" class="btn btn-success">
+            Pesquisar
+        </button>
+
+    </form>
+
+    <table class="table table-striped">
+
+        <thead>
 
             <tr>
-                <td><?= $linha['horas'] ?> horas</td>
-                <td><?= $linha['quantidade_itens'] ?></td>
+                <th>Revisão</th>
+                <th>Quantidade de Itens</th>
             </tr>
 
-        <?php endwhile; ?>
+        </thead>
 
-    </tbody>
-</table>
+        <tbody>
 
+            <?php while ($linha = $resultadoTabela->fetch_assoc()): ?>
 
-<h2>Revisões carregadas do Banco</h2>
+                <?php
 
-<ul>
+                if (
+                    $busca != '' &&
+                    strpos((string)$linha['horas'], $busca) === false
+                ) {
+                    continue;
+                }
 
-<?php while($linha = $resultadoBanco->fetch_assoc()): ?>
+                ?>
 
-    <li>
-        Revisão <?= $linha['horas'] ?> horas
-    </li>
+                <tr>
 
-<?php endwhile; ?>
+                    <td>
+                        <?= $linha['horas'] ?> horas
+                    </td>
 
-</ul>
+                    <td>
+                        <?= $linha['quantidade_itens'] ?>
+                    </td>
 
-<br>
+                </tr>
 
-<div class="cards">
+            <?php endwhile; ?>
 
-    <?php $encontrouRevisao = false; ?>
+        </tbody>
 
-    <?php foreach ($revisoes as $revisao): ?>
+    </table>
 
-        <?php
-            if ($busca != '' && strpos($revisao['horas'], $busca) === false) {
+    <h2>Revisões carregadas do Banco</h2>
+
+    <ul>
+
+        <?php foreach ($revisoes as $revisao): ?>
+
+            <?php
+
+            if (
+                $busca != '' &&
+                strpos((string)$revisao['horas'], $busca) === false
+            ) {
+                continue;
+            }
+
+            ?>
+
+            <li>
+                Revisão <?= $revisao['horas'] ?> horas
+            </li>
+
+        <?php endforeach; ?>
+
+    </ul>
+
+    <br>
+
+    <div class="cards">
+
+        <?php $encontrouRevisao = false; ?>
+
+        <?php foreach ($revisoes as $revisao): ?>
+
+            <?php
+
+            if (
+                $busca != '' &&
+                strpos((string)$revisao['horas'], $busca) === false
+            ) {
                 continue;
             }
 
             $encontrouRevisao = true;
-        ?>
 
-        <div class="card">
+            ?>
 
-            <img
-                src="<?= $revisao['imagem'] ?>"
-                alt=""
-                class="zoom-img"
-                onclick="abrirImagem(this.src)"
-            >
+            <div class="card">
 
-            <div class="card-content">
-
-                <h2><?= $revisao['horas'] ?></h2>
-
-                <ul>
-
-                    <?php foreach ($revisao['itens'] as $item): ?>
-
-                        <li>🔧 <?= $item ?></li>
-
-                    <?php endforeach; ?>
-
-                </ul>
-
-                <p>
-                    ⏱ Tempo estimado:
-                    <?= tempoEstimadoRevisao($revisao['itens']) ?> minutos
-                </p>
-
-                <a
-                    href="detalhes.php?id=<?= explode(' ', $revisao['horas'])[0] ?>"
-                    class="btn"
+                <img
+                    src="<?= $revisao['imagem'] ?>"
+                    alt="Revisão <?= $revisao['horas'] ?> horas"
+                    class="zoom-img"
+                    onclick="abrirImagem(this.src)"
                 >
-                    Ver Detalhes
-                </a>
+
+                <div class="card-content">
+
+                    <h2>
+                        <?= $revisao['horas'] ?> horas
+                    </h2>
+
+                    <ul>
+
+                        <?php foreach ($revisao['itens'] as $item): ?>
+
+                            <li>
+                                🔧 <?= htmlspecialchars($item) ?>
+                            </li>
+
+                        <?php endforeach; ?>
+
+                    </ul>
+
+                    <p>
+                        ⏱ Tempo estimado:
+                        <?= tempoEstimadoRevisao($revisao['itens']) ?>
+                        minutos
+                    </p>
+
+                    <a
+                        href="detalhes.php?id=<?= $revisao['horas'] ?>"
+                        class="btn"
+                    >
+                        Ver Detalhes
+                    </a>
+
+                </div>
 
             </div>
 
-        </div>
+        <?php endforeach; ?>
 
-    <?php endforeach; ?>
+        <?php if (!$encontrouRevisao): ?>
 
+            <div class="alert alert-warning">
+                Nenhuma revisão encontrada para este modelo.
+            </div>
 
-    <?php if (!$encontrouRevisao): ?>
+        <?php endif; ?>
 
-        <div class="alert alert-warning">
-            Nenhuma revisão encontrada para a busca realizada.
-        </div>
-
-    <?php endif; ?>
-
-</div>
+    </div>
 
 </section>
 
@@ -223,7 +284,10 @@ $resultadoTabela = $conn->query("
 
 <div id="modalImagem" class="modal-imagem">
 
-    <span class="fechar" onclick="fecharImagem()">
+    <span
+        class="fechar"
+        onclick="fecharImagem()"
+    >
         &times;
     </span>
 
@@ -232,15 +296,22 @@ $resultadoTabela = $conn->query("
 </div>
 
 <script>
-    const revisoesJS = <?= json_encode($revisoes); ?>;
+
+    const revisoesJS = <?= json_encode(
+        $revisoes,
+        JSON_UNESCAPED_UNICODE
+    ); ?>;
 
     console.log(revisoesJS);
 
     const totalItens = revisoesJS.reduce((total, revisao) => {
-    return total + revisao.itens.length;
+        return total + revisao.itens.length;
     }, 0);
 
-    console.log("Total de itens das revisões:", totalItens);
+    console.log(
+        "Total de itens das revisões:",
+        totalItens
+    );
 
 </script>
 
