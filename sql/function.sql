@@ -1,0 +1,10 @@
+DELIMITER $$
+
+CREATE FUNCTION tempo_estimado_revisao(qtd_itens INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN qtd_itens * 30;
+END $$
+
+DELIMITER ;

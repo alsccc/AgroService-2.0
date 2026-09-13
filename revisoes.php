@@ -81,11 +81,71 @@ while ($linha = $resultadoCards->fetch_assoc()) {
 }
 
 $revisoes = array_values($revisoes);
+
+// Indicadores da dashboard
+$totalRevisoes = count($revisoes);
+
+$totalItensDashboard = 0;
+$maiorRevisao = 0;
+
+foreach ($revisoes as $revisao) {
+
+    $totalItensDashboard += count($revisao['itens']);
+
+    if ($revisao['horas'] > $maiorRevisao) {
+        $maiorRevisao = $revisao['horas'];
+    }
+}
 ?>
 
 <section class="container">
 
     <h1>Plano de Revisões</h1>
+    <div class="row mb-4">
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-center p-3">
+
+            <h3>
+                <?= $totalRevisoes ?>
+            </h3>
+
+            <p class="mb-0">
+                Revisões disponíveis
+            </p>
+
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-center p-3">
+
+            <h3>
+                <?= $totalItensDashboard ?>
+            </h3>
+
+            <p class="mb-0">
+                Itens de manutenção
+            </p>
+
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card text-center p-3">
+
+            <h3>
+                <?= $maiorRevisao ?>h
+            </h3>
+
+            <p class="mb-0">
+                Maior revisão
+            </p>
+
+        </div>
+    </div>
+
+</div>
 
     <form method="GET" class="mb-4">
 

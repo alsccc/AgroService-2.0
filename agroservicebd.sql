@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 12/06/2026 às 02:53
+-- Tempo de geração: 13/09/2026 às 21:49
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.2.12
 
@@ -20,6 +20,43 @@ SET time_zone = "+00:00";
 --
 -- Banco de dados: `agroservicebd`
 --
+
+DELIMITER $$
+--
+-- Procedimentos
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `buscar_revisoes` (IN `p_modelo` INT, IN `p_limite` INT, IN `p_offset` INT)   BEGIN
+    SELECT
+        r.id_revisao,
+        m.modelo,
+        r.horas,
+        r.descricao,
+        COUNT(ri.id_item) AS total_itens
+    FROM revisoes r
+    INNER JOIN modelostratores m
+        ON r.id_modelo = m.id_modelo
+    LEFT JOIN revisaoItens ri
+        ON r.id_revisao = ri.id_revisao
+    WHERE
+        p_modelo IS NULL
+        OR r.id_modelo = p_modelo
+    GROUP BY
+        r.id_revisao,
+        m.modelo,
+        r.horas,
+        r.descricao
+    ORDER BY r.horas
+    LIMIT p_limite OFFSET p_offset;
+END$$
+
+--
+-- Funções
+--
+CREATE DEFINER=`root`@`localhost` FUNCTION `tempo_estimado_revisao` (`qtd_itens` INT) RETURNS INT(11) DETERMINISTIC BEGIN
+    RETURN qtd_itens * 30;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -119,6 +156,29 @@ INSERT INTO `revisoes` (`id_revisao`, `id_modelo`, `horas`, `descricao`) VALUES
 (1, 1, 250, 'Primeira revisão preventiva'),
 (2, 1, 500, 'Revisão intermediária'),
 (3, 1, 1000, 'Revisão completa');
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para view `vw_resumo_revisoes`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `vw_resumo_revisoes` (
+`id_revisao` int(11)
+,`modelo` varchar(50)
+,`horas` int(11)
+,`descricao` varchar(255)
+,`total_itens` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para view `vw_resumo_revisoes`
+--
+DROP TABLE IF EXISTS `vw_resumo_revisoes`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_resumo_revisoes`  AS SELECT `r`.`id_revisao` AS `id_revisao`, `m`.`modelo` AS `modelo`, `r`.`horas` AS `horas`, `r`.`descricao` AS `descricao`, count(`ri`.`id_item`) AS `total_itens` FROM ((`revisoes` `r` join `modelostratores` `m` on(`r`.`id_modelo` = `m`.`id_modelo`)) left join `revisaoitens` `ri` on(`r`.`id_revisao` = `ri`.`id_revisao`)) GROUP BY `r`.`id_revisao`, `m`.`modelo`, `r`.`horas`, `r`.`descricao` ;
 
 --
 -- Índices para tabelas despejadas

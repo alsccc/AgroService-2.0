@@ -24,7 +24,7 @@ function renderizarCategorias(categorias) {
     }
     const linksHtml = categorias.map((categoria) => {
         return `
-            <a href="revisoes.php?modelo=${categoria.id}" 
+            <a href="revisoes.php?modelo=${categoria.id}"
                class="btn btn-success me-2 mb-2">
                 ${categoria.nome}
             </a>
@@ -35,8 +35,23 @@ function renderizarCategorias(categorias) {
 async function carregarRevisoes() {
     try {
         const resposta = await fetch("api/revisoes.php");
+        if (!resposta.ok) {
+            throw new Error("Falha ao buscar revisões");
+        }
         const revisoes = await resposta.json();
-        console.log(revisoes);
+        // FILTER
+        // Seleciona revisões com 4 ou mais itens
+        const revisoesComMuitosItens = revisoes.filter((revisao) => {
+            return Number(revisao.total_itens) >= 4;
+        });
+        console.log("Revisões com 4 ou mais itens:", revisoesComMuitosItens);
+        // RANKING
+        // Organiza da revisão com mais itens para a com menos itens
+        const rankingRevisoes = [...revisoes].sort((a, b) => {
+            return Number(b.total_itens) - Number(a.total_itens);
+        });
+        console.log("Ranking de revisões por quantidade de itens:", rankingRevisoes);
+        console.log("Todas as revisões:", revisoes);
     }
     catch (erro) {
         console.error("Erro ao carregar revisões:", erro);
