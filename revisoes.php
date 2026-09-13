@@ -104,7 +104,7 @@ foreach ($revisoes as $revisao) {
     <div class="row mb-4">
 
     <div class="col-md-4 mb-3">
-        <div class="card text-center p-3">
+        <div class="card card-indicador text-center p-3">
 
             <h3>
                 <?= $totalRevisoes ?>
@@ -118,7 +118,7 @@ foreach ($revisoes as $revisao) {
     </div>
 
     <div class="col-md-4 mb-3">
-        <div class="card text-center p-3">
+        <div class="card card-indicador text-center p-3">
 
             <h3>
                 <?= $totalItensDashboard ?>
@@ -132,7 +132,7 @@ foreach ($revisoes as $revisao) {
     </div>
 
     <div class="col-md-4 mb-3">
-        <div class="card text-center p-3">
+        <div class="card card-indicador text-center p-3">
 
             <h3>
                 <?= $maiorRevisao ?>h
